@@ -31,7 +31,7 @@ connection.once('open', () => {
 
 //we probably need to save the previous exchangeRate (MongoDB connection) to reuse it
 const cronJob = new CronJob(
-    "* * * * *",
+    "*/20 * * * *",
     async () => {
         const exchangeRateCRO = await getExchangeRates('CRO')
         const transformedRatesFormat = transformData(exchangeRateCRO)
