@@ -17,11 +17,10 @@ npm start       # start the server
 Furthermore, add a .env file in the root of the folder conforming to the following template
 
 ```shell
-PORT=*the port on which the server is running*
-SMTP_USER=*the email from which the SMTP server is sending out the mails*
-SMTP_PASS=*the password for your SMTP server username*
-RECEIVER=*the receiving email address to which the reports are being sent out every 30 minutes*
-COIN_API_KEY=*your COINAPI key*
-
-ATLAS_URI=*your MongoDB Atlas URI*
+PORT=the port on which the server is running
+SMTP_USER=the email from which the SMTP server is sending out the mails
+SMTP_PASS=the password for your SMTP server username
+RECEIVER=the receiving email address to which the reports are being sent out every 30 minutes
+COIN_API_KEY=your COINAPI key
+ATLAS_URI=your MongoDB Atlas URI
 ```
