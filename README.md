@@ -14,7 +14,7 @@ npm install     # install dependencies
 npm start       # start the server
 ```
 
-Furthermore, add a .env file in the root of the folder conforming to the following template
+Furthermore, add a .env file in the root of the project folder using the template below
 
 ```shell
 PORT=the port on which the server is running
