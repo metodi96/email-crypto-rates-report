@@ -7,7 +7,7 @@ require('dotenv').config();
 const sendEmail = require('./services/email')
 const getExchangeRates = require('./services/exchangeRates')
 const transformData = require('./utils/transformData')
-const createReport = require('./services/saveRates')
+const { createReport } = require('./services/reports')
 
 const app = express();
 
@@ -31,14 +31,12 @@ connection.once('open', () => {
 
 //we probably need to save the previous exchangeRate (MongoDB connection) to reuse it
 const cronJob = new CronJob(
-    "* * * * *",
+    "*/15 * * * *",
     async () => {
-        const exchangeRateBTC = await getExchangeRates('BTC')
-        const exchangeRateETH = await getExchangeRates('ETH')
         const exchangeRateCRO = await getExchangeRates('CRO')
-        const transformedRatesFormat = transformData(exchangeRateBTC, exchangeRateETH, exchangeRateCRO)
-        createReport(transformedRatesFormat)
-        sendEmail(transformedRatesFormat)
+        const transformedRatesFormat = transformData(exchangeRateCRO)
+        await createReport(transformedRatesFormat)
+        sendEmail()
     },
     null,
     true,
@@ -54,7 +52,6 @@ setInterval(() => {
 
 app.get('/', async (req, res) => {
     res.send("Hello")
-    console.log('Email sent')
 })
 
 //server is listening on port...

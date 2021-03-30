@@ -1,33 +1,18 @@
-const transformData = (exchangeRateBTC, exchangeRateETH, exchangeRateCRO) => {
-    if (typeof exchangeRateBTC === 'undefined' ||
-        typeof exchangeRateETH === 'undefined' ||
-        typeof exchangeRateCRO === 'undefined') return
+const transformData = (exchangeRateCRO) => {
+    if (typeof exchangeRateCRO === 'undefined' || 
+        exchangeRateCRO.rates.length === 0) return
 
-    const exchangeRateBTCFiltered = exchangeRateBTC.rates.filter(entry => entry.asset_id_quote === 'USD' ||
-        entry.asset_id_quote === 'EUR')
-    const exchangeRateETHFiltered = exchangeRateETH.rates.filter(entry => entry.asset_id_quote === 'USD' ||
-        entry.asset_id_quote === 'EUR')
     const exchangeRateCROFiltered = exchangeRateCRO.rates.filter(entry => entry.asset_id_quote === 'USD' ||
         entry.asset_id_quote === 'EUR')
 
-    const exchangeRateFinalObject = {
-        btcRates: {
-            usd: exchangeRateBTCFiltered.find(entry => entry.asset_id_quote === 'USD').rate,
-            eur: exchangeRateBTCFiltered.find(entry => entry.asset_id_quote === 'EUR').rate
-        },
-        ethRates: {
-            usd: exchangeRateETHFiltered.find(entry => entry.asset_id_quote === 'USD').rate,
-            eur: exchangeRateETHFiltered.find(entry => entry.asset_id_quote === 'EUR').rate
-        },
+    const exchangeRateCROFinalObject = {
         croRates: {
             usd: exchangeRateCROFiltered.find(entry => entry.asset_id_quote === 'USD').rate,
             eur: exchangeRateCROFiltered.find(entry => entry.asset_id_quote === 'EUR').rate
         }
     }
 
-    console.log('CRO exchange rates example ', exchangeRateFinalObject.croRates)
-
-    return exchangeRateFinalObject
+    return exchangeRateCROFinalObject
 }
 
 module.exports = transformData

@@ -1,10 +1,17 @@
 const nodemailer = require('nodemailer');
+const { getReports } = require('./reports')
+const moment = require('moment')
+
+const THRESHOLD_EUR = 0.17
 
 //send email if there is a significant movement in the rates
-const sendEmail = async (exchangeRatesFormatted) => {
-    console.log('Sending a mail with formatted rates...', exchangeRatesFormatted)
-    //dont send email if something went wrong with the API call
-    if (typeof exchangeRatesFormatted === 'undefined') return
+const sendEmail = async () => {
+    const lastTenReports = await getReports()
+    const previousReportsPercentageDiff = lastTenReports.map(report => ({
+        croRateEuro: report.croRates.eur,
+        changeAgainstThreshold: (report.croRates.eur / THRESHOLD_EUR) - 1,
+        createdAt: report.createdAt
+    }))
 
     // create reusable transporter object using the default SMTP transport
     let transporter = nodemailer.createTransport({
@@ -21,28 +28,36 @@ const sendEmail = async (exchangeRatesFormatted) => {
         }
     });
 
-    const btcRatesHtmlBody = `<p>USD: ${exchangeRatesFormatted.btcRates.usd}</p><p>EUR: ${exchangeRatesFormatted.btcRates.eur}</p>`
-    const ethRatesHtmlBody = `<p>USD: ${exchangeRatesFormatted.ethRates.usd}</p><p>EUR: ${exchangeRatesFormatted.ethRates.eur}</p>`
-    const croRatesHtmlBody = `<p>USD: ${exchangeRatesFormatted.croRates.usd}</p><p>EUR: ${exchangeRatesFormatted.croRates.eur}</p>`
+    const croRatesHtmlBody = previousReportsPercentageDiff.reduce((currValue, report) => currValue +
+        `<div>
+            <p>Price: ${report.croRateEuro} &#128;</p>
+            <p>
+                Difference to threshold (0.17 &#128;): <span style="color: ${report.changeAgainstThreshold > 0 ? 'green' :
+        report.changeAgainstThreshold < 0 ? 'red' : 'black'}">${(report.changeAgainstThreshold * 100).toFixed(3)}%</span>
+            </p>
+            <p>Captured At: ${moment(report.createdAt).format('DD/MM/YYYY HH:mm')}</p>
+        </div><hr>`, '')
 
     const htmlBody = `
-    <h2>BTC</h2>
-    ${btcRatesHtmlBody}
-    <hr/>
-    <h2>ETH</h2>
-    ${ethRatesHtmlBody}
-    <hr/>
-    <h2>CRO</h2>
-    ${croRatesHtmlBody}
+    <html>
+        <body>
+            <h2>CRO rates in EUR</h2>
+            <br>
+            <hr>
+            <div>${croRatesHtmlBody}</div>
+        </body>
+    </html>
     `
 
     // send mail with defined transport object
     let info = await transporter.sendMail({
         from: `"Crypto Prices Report Bot 🔥" ${process.env.SMTP_USER}`, // sender address
-        to: process.env.RECEIVER, // list of receivers
+        to: `${process.env.RECEIVER}`, // list of receivers
         subject: "Crypto Prices Report", // Subject line
         html: htmlBody, // html body
     });
+
+    console.log('Message Info: ', info)
 
     console.log("Message sent: %s", info.messageId);
     // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
