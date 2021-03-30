@@ -1,10 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const CronJob = require("cron").CronJob;
 require('dotenv').config();
 
 const sendEmail = require('./services/email')
 const getExchangeRates = require('./services/exchangeRates')
+const transformData = require('./utils/transformData')
+const createReport = require('./services/saveRates')
 
 const app = express();
 
@@ -16,13 +19,26 @@ app.use(cors());
 //this will allow us to parse json
 app.use(express.json());
 
+const uri = process.env.ATLAS_URI;
+//start connection
+console.log("Attempting database connection...")
+mongoose.connect(uri, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true }
+);
+const connection = mongoose.connection;
+connection.once('open', () => {
+    console.log("MongoDB database connection established successfully");
+})
+
+//we probably need to save the previous exchangeRate (MongoDB connection) to reuse it
 const cronJob = new CronJob(
-    "*/30 * * * *",
+    "* * * * *",
     async () => {
         const exchangeRateBTC = await getExchangeRates('BTC')
         const exchangeRateETH = await getExchangeRates('ETH')
         const exchangeRateCRO = await getExchangeRates('CRO')
-        sendEmail(exchangeRateBTC, exchangeRateETH, exchangeRateCRO)
+        const transformedRatesFormat = transformData(exchangeRateBTC, exchangeRateETH, exchangeRateCRO)
+        createReport(transformedRatesFormat)
+        sendEmail(transformedRatesFormat)
     },
     null,
     true,

@@ -1,21 +1,10 @@
 const nodemailer = require('nodemailer');
 
-const sendEmail = async (exchangeRateBTC, exchangeRateETH, exchangeRateCRO) => {
-
+//send email if there is a significant movement in the rates
+const sendEmail = async (exchangeRatesFormatted) => {
+    console.log('Sending a mail with formatted rates...', exchangeRatesFormatted)
     //dont send email if something went wrong with the API call
-    if (typeof exchangeRateBTC === 'undefined' ||
-        typeof exchangeRateETH === 'undefined' ||
-        typeof exchangeRateCRO === 'undefined') return
-
-    const exchangeRateBTCFiltered = exchangeRateBTC.rates.filter(entry => entry.asset_id_quote === 'USD' ||
-        entry.asset_id_quote === 'EUR')
-    const exchangeRateETHFiltered = exchangeRateETH.rates.filter(entry => entry.asset_id_quote === 'USD' ||
-        entry.asset_id_quote === 'EUR')
-    const exchangeRateCROFiltered = exchangeRateCRO.rates.filter(entry => entry.asset_id_quote === 'USD' ||
-        entry.asset_id_quote === 'EUR')
-    const exchangeRateBTCFinalObject = { BTC: exchangeRateBTCFiltered }
-    const exchangeRateETHFinalObject = { ETH: exchangeRateETHFiltered }
-    const exchangeRateCROFinalObject = { CRO: exchangeRateCROFiltered }
+    if (typeof exchangeRatesFormatted === 'undefined') return
 
     // create reusable transporter object using the default SMTP transport
     let transporter = nodemailer.createTransport({
@@ -32,22 +21,19 @@ const sendEmail = async (exchangeRateBTC, exchangeRateETH, exchangeRateCRO) => {
         }
     });
 
-    const btcRatesHtmlBody = exchangeRateBTCFinalObject.BTC.reduce((currValue, rate) => 
-    currValue + rate.asset_id_quote + ': ' + rate.rate + '<br>', '')
-    const ethRatesHtmlBody = exchangeRateETHFinalObject.ETH.reduce((currValue, rate) =>
-        currValue + rate.asset_id_quote + ': ' + rate.rate + '<br>', '')
-    const croRatesHtmlBody = exchangeRateCROFinalObject.CRO.reduce((currValue, rate) =>
-        currValue + rate.asset_id_quote + ': ' + rate.rate + '<br>', '')
+    const btcRatesHtmlBody = `<p>USD: ${exchangeRatesFormatted.btcRates.usd}</p><p>EUR: ${exchangeRatesFormatted.btcRates.eur}</p>`
+    const ethRatesHtmlBody = `<p>USD: ${exchangeRatesFormatted.ethRates.usd}</p><p>EUR: ${exchangeRatesFormatted.ethRates.eur}</p>`
+    const croRatesHtmlBody = `<p>USD: ${exchangeRatesFormatted.croRates.usd}</p><p>EUR: ${exchangeRatesFormatted.croRates.eur}</p>`
 
     const htmlBody = `
     <h2>BTC</h2>
-    <p>${btcRatesHtmlBody}</p>
+    ${btcRatesHtmlBody}
     <hr/>
     <h2>ETH</h2>
-    <p>${ethRatesHtmlBody}</p>
+    ${ethRatesHtmlBody}
     <hr/>
     <h2>CRO</h2>
-    <p>${croRatesHtmlBody}</p>
+    ${croRatesHtmlBody}
     `
 
     // send mail with defined transport object
