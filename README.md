@@ -1,6 +1,6 @@
 # email-crypto-rates-report
 
-A bot that runs a cron job to send an email reporting crypto rates of BTC, ETH and CRO using the coinapi.io API and also to save those reports in a NoSQL database (MongoDB).
+A bot that runs a cron job to send an email reporting crypto rates of Crypto.com's token (CRO) using the coinapi.io API and also to save those reports in a NoSQL database (MongoDB).
 I have used https://elasticemail.com for the SMTP server from which I send out the emails. It is up to you whether you would want to rely on something else.
 
 # Development
