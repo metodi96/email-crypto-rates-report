@@ -7,6 +7,7 @@ require('dotenv').config();
 const sendEmail = require('./services/email')
 const getExchangeRates = require('./services/exchangeRates')
 const transformData = require('./utils/transformData')
+const calculateRemainingTime = require('./utils/cron')
 const { createReport } = require('./services/reports')
 
 const app = express();
@@ -60,14 +61,6 @@ const cronJobTwo = new CronJob(
     true,
     "UTC"
 );
-
-const calculateRemainingTime = (cronJob) => {
-    const timeUntilNextRunSeconds = cronJob.nextDates(1)[0].unix() - new Date().getTime() / 1000;
-    const roundedTime = Math.round(timeUntilNextRunSeconds)
-    if (roundedTime % 60 === 0) {
-        console.log("Time until next run (min) for cronjob one: ", roundedTime / 60);
-    }
-}
 
 setInterval(() => {
     calculateRemainingTime(cronJob)
