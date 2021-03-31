@@ -49,7 +49,7 @@ const cronJob = new CronJob(
 );
 
 const cronJobTwo = new CronJob(
-    "* */8 * * *",
+    "* 10,16,22 * * *",
     async () => {
         const exchangeRateCRO = await getExchangeRates('CRO')
         const transformedRatesFormat = transformData(exchangeRateCRO)
