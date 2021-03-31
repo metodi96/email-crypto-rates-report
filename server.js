@@ -29,25 +29,49 @@ connection.once('open', () => {
     console.log("MongoDB database connection established successfully");
 })
 
-//we probably need to save the previous exchangeRate (MongoDB connection) to reuse it
+const receiverOne = process.env.RECEIVER
+const receiverTwo = process.env.RECEIVER_TWO
+const thresholdOne = process.env.THRESHOLD_EUR
+const thresholdTwo = process.env.THRESHOLD_EUR_TWO
+
+//define two cron jobs for the different recipients
 const cronJob = new CronJob(
     "*/20 * * * *",
     async () => {
         const exchangeRateCRO = await getExchangeRates('CRO')
         const transformedRatesFormat = transformData(exchangeRateCRO)
-        await createReport(transformedRatesFormat)
-        sendEmail()
+        await createReport(transformedRatesFormat, thresholdOne)
+        sendEmail(receiverOne, thresholdOne)
     },
     null,
     true,
     "UTC"
 );
 
-setInterval(() => {
-    let timeUntilNextRunSeconds = cronJob.nextDates(1)[0].unix() - new Date().getTime() / 1000;
+const cronJobTwo = new CronJob(
+    "* */8 * * *",
+    async () => {
+        const exchangeRateCRO = await getExchangeRates('CRO')
+        const transformedRatesFormat = transformData(exchangeRateCRO)
+        await createReport(transformedRatesFormat, thresholdTwo)
+        sendEmail(receiverTwo, thresholdTwo)
+    },
+    null,
+    true,
+    "UTC"
+);
+
+const calculateRemainingTime = (cronJob) => {
+    const timeUntilNextRunSeconds = cronJob.nextDates(1)[0].unix() - new Date().getTime() / 1000;
     const roundedTime = Math.round(timeUntilNextRunSeconds)
-    if (roundedTime % 60 === 0)
-        console.log("Time until next run (min): ", roundedTime / 60);
+    if (roundedTime % 60 === 0) {
+        console.log("Time until next run (min) for cronjob one: ", roundedTime / 60);
+    }
+}
+
+setInterval(() => {
+    calculateRemainingTime(cronJob)
+    calculateRemainingTime(cronJobTwo)
 }, 1000);
 
 app.get('/', async (req, res) => {

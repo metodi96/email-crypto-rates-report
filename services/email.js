@@ -2,14 +2,12 @@ const nodemailer = require('nodemailer');
 const { getReports } = require('./reports')
 const moment = require('moment')
 
-const THRESHOLD_EUR = 0.17
-
 //send email if there is a significant movement in the rates
-const sendEmail = async () => {
-    const lastTenReports = await getReports()
+const sendEmail = async (receiver, threshold) => {
+    const lastTenReports = await getReports(threshold)
     const previousReportsPercentageDiff = lastTenReports.map(report => ({
         croRateEuro: report.croRates.eur,
-        changeAgainstThreshold: (report.croRates.eur / THRESHOLD_EUR) - 1,
+        changeAgainstThreshold: (report.croRates.eur / threshold) - 1,
         createdAt: report.createdAt
     }))
 
@@ -30,9 +28,10 @@ const sendEmail = async () => {
 
     const croRatesHtmlBody = previousReportsPercentageDiff.reduce((currValue, report) => currValue +
         `<div>
-            <p>Price: ${report.croRateEuro} &#128;</p>
+            <p>Threshold: <b>${threshold} &#128;</b></p>
+            <p>Current Price: ${report.croRateEuro} &#128;</p>
             <p>
-                Difference to threshold (0.17 &#128;): <span style="color: ${report.changeAgainstThreshold > 0 ? 'green' :
+                Difference to threshold (${threshold} &#128;): <span style="color: ${report.changeAgainstThreshold > 0 ? 'green' :
         report.changeAgainstThreshold < 0 ? 'red' : 'black'}">${(report.changeAgainstThreshold * 100).toFixed(3)}%</span>
             </p>
             <p>Captured At: ${moment(report.createdAt).format('DD/MM/YYYY HH:mm')}</p>
@@ -52,7 +51,7 @@ const sendEmail = async () => {
     // send mail with defined transport object
     let info = await transporter.sendMail({
         from: `"Crypto Prices Report Bot 🔥" ${process.env.SMTP_USER}`, // sender address
-        to: `${process.env.RECEIVER}`, // list of receivers
+        to: `${receiver}`, // list of receivers
         subject: "Crypto Prices Report", // Subject line
         html: htmlBody, // html body
     });
