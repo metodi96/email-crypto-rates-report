@@ -23,4 +23,7 @@ SMTP_PASS=the password for your SMTP server username
 RECEIVER=the receiving email address to which the reports are being sent out every 30 minutes
 COIN_API_KEY=your COINAPI key
 ATLAS_URI=your MongoDB Atlas URI
+RECEIVER_TWO=the second receiver
+THRESHOLD_EUR=threshold for receiver one
+THRESHOLD_EUR_TWO=threshold for receiver two
 ```
